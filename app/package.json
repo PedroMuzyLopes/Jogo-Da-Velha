@@ -9,11 +9,17 @@
   },
   "dependencies": {
     "expo": "~37.0.3",
+    "lodash.range": "^3.2.0",
+    "pusher-js": "^6.0.3",
     "react": "~16.9.0",
     "react-dom": "~16.9.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-37.0.1.tar.gz",
+    "react-native-link": "^4.1.0",
+    "react-native-prompt": "^1.0.0",
     "react-native-screens": "~2.2.0",
-    "react-native-web": "~0.11.7"
+    "react-native-spinkit": "^1.5.0",
+    "react-native-web": "~0.11.7",
+    "shortid": "^2.2.15"
   },
   "devDependencies": {
     "@babel/core": "^7.8.6",
