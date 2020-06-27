@@ -24,6 +24,7 @@ export default class App extends React.Component {
     }
   }
 
+  // TTT
   // Carrega o tabuleira assim que a página carregar
   componentDidMount() {
     this.iniciarPartida();
