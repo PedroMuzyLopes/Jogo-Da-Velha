@@ -31,12 +31,12 @@ export default class App extends React.Component {
 
   // Esvazia todas as casas do tabuleiro
   iniciarPartida = () => {
-    if (this.state.rodada == 3){
+    if (this.state.rodada >= 3 && this.vitoria() != 0){
       if (this.state.pontos_player1 > this.state.pontos_player2) {
         Alert.alert('Fim de jogo!','Vitória do jogador 1');
         this.setState({rodada: 1, pontos_player1:0, pontos_player2:0});
         this.constructor();
-      } else if (this.state.pontos_player2 > this.state.pontos_player1) {
+      } else if (this.state.pontos_player1 < this.state.pontos_player2) {
         Alert.alert('Fim de jogo!','Vitória do jogador 2');
         this.setState({rodada: 1, pontos_player1:0, pontos_player2:0});
         this.constructor();
@@ -140,7 +140,7 @@ export default class App extends React.Component {
       this.setState({pontos_player2: this.state.pontos_player2 + 1});
       this.setState({rodada: this.state.rodada + 1});
       this.iniciarPartida();
-    } else if (vencedor == 0 && n_jogadas==9) {
+    } else if (vencedor == 0 && n_jogadas == 9) {
       Alert.alert('Round - ' + this.state.rodada.toString(),"Deu véia!");
       this.setState({rodada: this.state.rodada + 1});
       this.iniciarPartida();
