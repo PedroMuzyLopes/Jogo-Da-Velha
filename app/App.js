@@ -169,7 +169,6 @@ export default class App extends React.Component {
         y=y+1;
 
 
-
         const AsyncAlert = async () => new Promise((resolve) => {
           Alert.alert('Resultado','Player 2 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player2: x, rodada: y}); resolve('YES')}},],
           { cancelable: false },
