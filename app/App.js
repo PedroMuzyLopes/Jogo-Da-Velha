@@ -1,11 +1,11 @@
 import React from 'react';
 import {MaterialCommunityIcons as Icon } from 'react-native-vector-icons';
-import Constants from 'expo-constants';
 import {ImageBackground, TouchableOpacity, StyleSheet, Text, View, SafeAreaView, Alert, StatusBar } from 'react-native';
 
 export default class App extends React.Component {
 
   constructor(props) {
+
     super(props);
 
     // Inicia o tabuleiro
@@ -20,32 +20,18 @@ export default class App extends React.Component {
       pontos_player1: 0,
       pontos_player2: 0,
       rodada: 1,
-      numero_jogadas: 1,
+      numero_jogadas: 0,
     }
   }
-
-  // Carrega o tabuleira assim que a página carregar
-  componentDidMount() {
-    this.iniciarPartida();
-  }
+  
 
   // Esvazia todas as casas do tabuleiro
   iniciarPartida = () => {
-    if (this.state.rodada == 3){
-      if (this.state.pontos_player1 > this.state.pontos_player2) {
-        Alert.alert('Fim de jogo!','Vitória do jogador 1');
-        this.setState({rodada: 1, pontos_player1:0, pontos_player2:0});
-        this.constructor();
-      } else if (this.state.pontos_player2 > this.state.pontos_player1) {
-        Alert.alert('Fim de jogo!','Vitória do jogador 2');
-        this.setState({rodada: 1, pontos_player1:0, pontos_player2:0});
-        this.constructor();
-      } else if (this.state.pontos_player1 == this.state.pontos_player2) {
-        Alert.alert('Fim de jogo!','A partida empatou');
-        this.setState({rodada: 1, pontos_player1:0, pontos_player2:0});
-        this.constructor();
-      }
-    }
+
+    console.log(" Inicia P1: "+this.state.pontos_player1 + " P2:"+this.state.pontos_player2);
+
+    this.acabaRound();
+
     this.setState({tabuleiro:
       [
         [0, 0, 0],
@@ -54,8 +40,10 @@ export default class App extends React.Component {
       ],
 
       player: 1,
-      numero_jogadas: 1,
+      numero_jogadas: 0,
     });
+
+
   }
 
   // Define qual ícone será mostrado
@@ -101,22 +89,44 @@ export default class App extends React.Component {
 
     // Velha
     return 0;
+  }
+
+  acabaRound = () => {
+    if (this.state.rodada >= 4){
+
+
+      console.log("Rodada: " + this.state.rodada.toString() + "Valor final partida P1: "+ this.state.pontos_player1.toString() + " Valor final partida P2: "+ this.state.pontos_player2.toString());
+
+
+      if (this.state.pontos_player1 > this.state.pontos_player2) {
+        Alert.alert('Fim de jogo!','Vitória do jogador 1');
+      } 
+      else if (this.state.pontos_player2 > this.state.pontos_player1) {
+        Alert.alert('Fim de jogo!','Vitória do jogador 2');
+      }
+      else if (this.state.pontos_player1 == this.state.pontos_player2) {
+        
+        Alert.alert('Fim de jogo!','A partida empatou');
+      }
+
+      this.setState({rodada: 1, pontos_player1:0, pontos_player2:0 });
+
+    } 
+  }
 
     
 
-  }
+    async jogada (linha, coluna) {
 
-  jogada = (linha, coluna) => {
     // Verifica se a casa já foi escolhida
     var casa = this.state.tabuleiro[linha][coluna];
     if (casa !== 0) { return; } 
 
     // Conta o número de jogadas
-    var n_jogadas = this.state.numero_jogadas;
-    this.setState({numero_jogadas: this.state.numero_jogadas + 1});
-
-
-
+    var n_jogadas = Number(this.state.numero_jogadas);
+    n_jogadas++;
+    this.setState({numero_jogadas: n_jogadas});
+    console.log("N_jogadas:"+n_jogadas +" P1: "+this.state.pontos_player1 + " P2:"+this.state.pontos_player2);
     // Pega o player atual
     var player = this.state.player;
 
@@ -130,22 +140,64 @@ export default class App extends React.Component {
 
     // Verifica vitoria
     var vencedor = this.vitoria();
-    if (vencedor == 1) { 
-      Alert.alert('Round - ' + this.state.rodada.toString(),'Vitória do jogador 1');
-      this.setState({pontos_player1: this.state.pontos_player1 + 1});
-      this.setState({rodada: this.state.rodada + 1});
-      this.iniciarPartida();
-    } else if (vencedor == -1) { 
-      Alert.alert('Round - ' + this.state.rodada.toString(),"Jogador 2 é o vencedor!");
-      this.setState({pontos_player2: this.state.pontos_player2 + 1});
-      this.setState({rodada: this.state.rodada + 1});
-      this.iniciarPartida();
-    } else if (vencedor == 0 && n_jogadas==9) {
-      Alert.alert('Round - ' + this.state.rodada.toString(),"Deu véia!");
-      this.setState({rodada: this.state.rodada + 1});
-      this.iniciarPartida();
-    }
+    
 
+    if (vencedor == 1) {
+        let x =this.state.pontos_player1;
+        x=x+1;
+        
+        let y = Number(this.state.rodada);
+        y=y+1;
+
+    const AsyncAlert = async () => new Promise((resolve) => {
+      Alert.alert('Resultado','Player 1 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player1: x, rodada: y}); resolve('YES')}},],
+      { cancelable: false },
+    );
+    });
+    await AsyncAlert();
+
+    
+    this.iniciarPartida();  
+
+      
+    } else if (vencedor == -1) {
+
+      let x = this.state.pontos_player2;
+        x=x+1;
+
+        let y = Number(this.state.rodada);
+        y=y+1;
+
+
+
+        const AsyncAlert = async () => new Promise((resolve) => {
+          Alert.alert('Resultado','Player 2 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player2: x, rodada: y}); resolve('YES')}},],
+          { cancelable: false },
+          );
+          });
+          await AsyncAlert();
+      
+          
+          this.iniciarPartida(); 
+
+    } else if (n_jogadas == 9 && vencedor == 0) {
+      let y = Number(this.state.rodada);
+        y=y+1;
+        
+      this.setState({rodada: y});
+
+
+      Alert.alert('Resultado','Ih, deu velha!',[{text: 'Continuar'}],
+      { cancelable: false },
+      );
+
+
+      this.iniciarPartida();
+      
+      
+    }
+    
+    
   }
   
   render() {
