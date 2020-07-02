@@ -24,6 +24,71 @@ export default class Jogo extends React.Component {
       numero_jogadas: 0,
     }
   }
+
+  insertdata = (posicao,player) => {
+
+    //CONFIGURAÇÕES DO BANCO
+    var config = {
+      apiKey: "AIzaSyBVg5RDq_Ftl2Am0Eae8UZietPKWHHoA6E",
+      authDomain: "jogo-da-velha-40552.firebaseapp.com",
+      databaseURL: "https://jogo-da-velha-40552.firebaseio.com",
+      projectId: "jogo-da-velha-40552",
+      storageBucket: "jogo-da-velha-40552.appspot.com",
+      messagingSenderId: "455848204596",
+      appId: "1:455848204596:web:3c15b887a5c8642bdd6d61",
+      measurementId: "G-7YKBRSS9LQ"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(config);
+    }
+
+    // BUSCA OS DADOS TODAS A VEZ QUE O BANCO É MODIFICADO
+    firebase.database().ref('game').on('value', (data) => {
+        console.log(data.toJSON());
+    })
+
+    // ESPERAR 5 SEGUNDOS PARA INSERIR O PROXIMO DADO
+    setTimeout(() => {
+        firebase.database().ref('game').update(
+            {
+
+              [posicao]: player
+
+              /*
+                1: 0,
+                2: 0,
+                3: 0,
+                4: 0,
+                5: 0,
+                6: 0,
+                7: 0,
+                8: 0,
+                9: 0    
+                */              
+            }
+        ).then(() => {
+            console.log('INSERTED !');
+        }).catch((error) => {
+            console.log(error);
+        });
+    }, 5000);
+
+
+    // Para Atualizar o banco
+
+    /*
+    firebase.database().ref('game/004').update({
+        name: 'Pheng Sengvuthy'
+    });
+    */
+
+    // para apagar o banco
+    /*
+    firebase.database().ref('game/004').remove();
+    */
+
+}
   
 
   // Esvazia todas as casas do tabuleiro
@@ -135,6 +200,36 @@ export default class Jogo extends React.Component {
     var jogada = this.state.tabuleiro.slice();
     jogada[linha][coluna] = player;
     this.setState({tabuleiro: jogada});
+
+     //BANCO INSERÇÃO
+     if(linha == "0" && coluna == "0"){
+      var posicao = 1;
+      this.insertdata(posicao,player);
+    }else if(linha == "0" && coluna == "1"){
+      var posicao = 2;
+      this.insertdata(posicao,player);
+    }else if(linha == "0" && coluna == "2"){
+      var posicao = 3;
+      this.insertdata(posicao,player);
+    }else if(linha == "1" && coluna == "0"){
+      var posicao = 4;
+      this.insertdata(posicao,player);
+    }else if(linha == "1" && coluna == "1"){
+      var posicao = 5;
+      this.insertdata(posicao,player);
+    }else if(linha == "1" && coluna == "2"){
+      var posicao = 6;
+      this.insertdata(posicao,player);
+    }else if(linha == "2" && coluna == "0"){
+      var posicao = 7;
+      this.insertdata(posicao,player);
+    }else if(linha == "2" && coluna == "1"){
+      var posicao = 8;
+      this.insertdata(posicao,player);
+    }else if(linha == "2" && coluna == "2"){
+      var posicao = 9;
+      this.insertdata(posicao,player);
+    }
 
     // Troca o player
     this.setState({player: this.state.player * -1});
