@@ -25,6 +25,53 @@ export default class Jogo extends React.Component {
     }
   }
 
+  resetgame = () => {
+
+    //CONFIGURAÇÕES DO BANCO
+    var config = {
+      apiKey: "AIzaSyBVg5RDq_Ftl2Am0Eae8UZietPKWHHoA6E",
+      authDomain: "jogo-da-velha-40552.firebaseapp.com",
+      databaseURL: "https://jogo-da-velha-40552.firebaseio.com",
+      projectId: "jogo-da-velha-40552",
+      storageBucket: "jogo-da-velha-40552.appspot.com",
+      messagingSenderId: "455848204596",
+      appId: "1:455848204596:web:3c15b887a5c8642bdd6d61",
+      measurementId: "G-7YKBRSS9LQ"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(config);
+    }
+
+    // BUSCA OS DADOS TODAS A VEZ QUE O BANCO É MODIFICADO
+    firebase.database().ref('game').on('value', (data) => {
+        console.log(data.toJSON());
+    })
+
+    // ESPERAR 5 SEGUNDOS PARA INSERIR O PROXIMO DADO
+    setTimeout(() => {
+        firebase.database().ref('game').update(
+            {
+                1: 0,
+                2: 0,
+                3: 0,
+                4: 0,
+                5: 0,
+                6: 0,
+                7: 0,
+                8: 0,
+                9: 0                                
+            }
+        ).then(() => {
+            console.log('INSERTED !');
+        }).catch((error) => {
+            console.log(error);
+        });
+    }, 5000);
+
+}
+  
+
   insertdata = (posicao,player) => {
 
     //CONFIGURAÇÕES DO BANCO
@@ -53,19 +100,7 @@ export default class Jogo extends React.Component {
         firebase.database().ref('game').update(
             {
 
-              [posicao]: player
-
-              /*
-                1: 0,
-                2: 0,
-                3: 0,
-                4: 0,
-                5: 0,
-                6: 0,
-                7: 0,
-                8: 0,
-                9: 0    
-                */              
+              [posicao]: player           
             }
         ).then(() => {
             console.log('INSERTED !');
@@ -245,6 +280,8 @@ export default class Jogo extends React.Component {
         let y = Number(this.state.rodada);
         y=y+1;
 
+    
+
     const AsyncAlert = async () => new Promise((resolve) => {
       Alert.alert('Resultado','Player 1 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player1: x, rodada: y}); resolve('YES')}},],
       { cancelable: false },
@@ -252,7 +289,7 @@ export default class Jogo extends React.Component {
     });
     await AsyncAlert();
 
-    
+    this.resetgame();
     this.iniciarPartida();  
 
       
@@ -264,7 +301,7 @@ export default class Jogo extends React.Component {
         let y = Number(this.state.rodada);
         y=y+1;
 
-
+        this.deletedata();
         const AsyncAlert = async () => new Promise((resolve) => {
           Alert.alert('Resultado','Player 2 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player2: x, rodada: y}); resolve('YES')}},],
           { cancelable: false },
