@@ -11,6 +11,21 @@ export default class Jogo extends React.Component {
 
     super(props);
 
+    this.state = {
+      tabuleiro: [
+        [],
+        [],
+        [],
+        
+      ],
+
+      player: 1,
+      pontos_player1: 0,
+      pontos_player2: 0,
+      rodada: 1,
+      numero_jogadas: 0,
+    }
+
     if (!firebase.apps.length) {
       firebase.initializeApp(config);
     }
@@ -34,48 +49,26 @@ export default class Jogo extends React.Component {
         numero_jogadas: 0,
       });
 
-      var online = [];
-
       // BUSCA OS DADOS TODAS A VEZ QUE O BANCO É MODIFICADO
       firebase.database().ref('game').on('value', (data) => {
-        online.push({
-          J1: data.J1,
-          J2: data.J2,
-          J3: data.J3,
-          J4: data.J4,
-          J5: data.J5,
-          J6: data.J6,
-          J7: data.J7,
-          J8: data.J8,
-          J9: data.J9,
-          jogadores: data.jogadores,
-          player: data.player,
-          pontos_player1: data.pontos_player1,
-          pontos_player2: data.pontos_player2,
-          rodada: data.rodada,
-          numero_jogadas: data.numero_jogadas,
+
+        this.setState({tabuleiro:
+          [
+            [data.val().J1, data.val().J2, data.val().J3],
+            [data.val().J4, data.val().J5, data.val().J6],
+            [data.val().J7, data.val().J8, data.val().J9],
+          ],
+    
+          jogadores: data.val().jogadores,
+          player: data.val().player,
+          pontos_player1: data.val().pontos_player1,
+          pontos_player2: data.val().pontos_player2,
+          rodada: data.val().rodada,
+          numero_jogadas: data.val().numero_jogadas,
         });
+      
       })
       
-      
-
-    // Inicia o tabuleiro
-    this.state = {
-
-      
-      tabuleiro: [
-        [online.J1, online.J2, online.J3],
-        [online.J4, online.J5, online.J6],
-        [online.J7, online.J8, online.J9],
-        
-      ],
-
-      player: online.player,
-      pontos_player1: online.pontos_player1,
-      pontos_player2: online.pontos_player2,
-      rodada: online.rodada,
-      numero_jogadas: online.numero_jogadas,
-    }
   }
 
   resetgame = () => {
@@ -160,16 +153,7 @@ export default class Jogo extends React.Component {
 
     this.acabaRound();
 
-    this.setState({tabuleiro:
-      [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-      ],
-
-      player: 1,
-      numero_jogadas: 0,
-    });
+    this.resetgame();
 
 
   }
