@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import {MaterialCommunityIcons as Icon } from 'react-native-vector-icons';
-import {ImageBackground, TouchableOpacity, StyleSheet, Text, View, SafeAreaView, Alert, StatusBar } from 'react-native';
+import {ImageBackground, TouchableOpacity, StyleSheet, Text, View, SafeAreaView, Alert, StatusBar, BackHandler } from 'react-native';
 import firebase from 'firebase';
 
 import config from '../../config';
 
 export default class Jogo extends React.Component {
+
 
   constructor(props) {
 
@@ -16,19 +17,24 @@ export default class Jogo extends React.Component {
         [],
         [],
         [],
-        
       ],
 
       player: 1,
       pontos_player1: 0,
       pontos_player2: 0,
       rodada: 1,
-      numero_jogadas: 0,
+      localPlayer : 0,
+      nome_player1: '',
+      nome_player2: '',
+      jogadores: 0,
     }
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(config);
-    }
+    firebase.database().ref('game').on('value', (data) => {
+      this.setState({jogadores: data.val().jogadores});
+    })
+
+    
+
 
     firebase.database().ref('game').update(
       {
@@ -41,12 +47,12 @@ export default class Jogo extends React.Component {
         J7: 0,
         J8: 0,
         J9: 0,
-        jogadores: 0,
         player: 1,
         pontos_player1: 0,
         pontos_player2: 0,
         rodada: 1,
-        numero_jogadas: 0,
+        ultimo_ganhador: 0,
+        
       });
 
       // BUSCA OS DADOS TODAS A VEZ QUE O BANCO É MODIFICADO
@@ -63,27 +69,131 @@ export default class Jogo extends React.Component {
           player: data.val().player,
           pontos_player1: data.val().pontos_player1,
           pontos_player2: data.val().pontos_player2,
+          nome_player1: data.val().nome_player1,
+          nome_player2: data.val().nome_player2,
           rodada: data.val().rodada,
-          numero_jogadas: data.val().numero_jogadas,
         });
       
       })
+
+
       
   }
 
-  resetgame = () => {
+  atualizaStates() {
 
-    //CONFIGURAÇÕES DO BANCO
+
+
+    if (this.state.player != 0) {
+       firebase.database().ref('game').on('value', (data) => 
+           {
+            this.setState({tabuleiro:
+              [
+                [data.val().J1, data.val().J2, data.val().J3],
+                [data.val().J4, data.val().J5, data.val().J6],
+                [data.val().J7, data.val().J8, data.val().J9],
+              ],
+        
+              jogadores: data.val().jogadores,
+              player: data.val().player,
+              pontos_player1: data.val().pontos_player1,
+              pontos_player2: data.val().pontos_player2,
+              rodada: data.val().rodada,
+              nome_player1: data.val().nome_player1,
+              nome_player2: data.val().nome_player2,
+            });
+          })
+     }
+
+     
+  }
+
+  onSessionDataChanged(data) {
+    // No-op by default.
+  }
+
+
+  componentDidMount() {
+
+
+
     if (!firebase.apps.length) {
-        firebase.initializeApp(config);
+      firebase.initializeApp(config);
     }
 
-    // BUSCA OS DADOS TODAS A VEZ QUE O BANCO É MODIFICADO
     firebase.database().ref('game').on('value', (data) => {
-        console.log(data.toJSON());
+
+      
+      if(data.val().jogadores==0 && this.state.localPlayer ==0){
+
+        console.log('CHAMOOOOOOOOOOOOU');
+
+        this.setState({localPlayer: 1, nome_player1: firebase.auth().currentUser.displayName});
+
+        firebase.database().ref('game').update(
+          {
+            jogadores: 1,
+            nome_player1: this.state.nome_player1
+          })
+        
+
+      }else if(this.state.localPlayer==0 && data.val().jogadores !=0){
+        console.log('CHAMOOOOOOOOOOOOU2');
+        this.setState({localPlayer: -1, nome_player2: firebase.auth().currentUser.displayName});
+        firebase.database().ref('game').update(
+          {
+            jogadores: 2,
+            nome_player2: this.state.nome_player2
+          })
+        
+      }
     })
 
-    // ESPERAR 5 SEGUNDOS PARA INSERIR O PROXIMO DADO
+    
+  }
+
+  insereDados = (campo) => {
+
+    firebase.database().ref('game').on('value', (data) => 
+        {
+          //data.val().+[campo];    
+        }
+    )
+  }
+
+  insertdata = (campo, valor) => {
+
+    firebase.database().ref('game').update(
+        {
+          ['J'+campo] : valor,     
+        }
+    )
+       
+    if (this.state.player == 1) {
+
+      firebase.database().ref('game').update(
+        {
+          player: -1
+        })
+    } else {
+      firebase.database().ref('game').update(
+        {
+          player: 1
+        })
+    }
+
+
+      //this.setState({player: this.state.player * -1});
+
+  }
+
+  
+
+  resetgame = () => {
+
+
+
+
     firebase.database().ref('game').update(
       {
         J1: 0,
@@ -95,65 +205,41 @@ export default class Jogo extends React.Component {
         J7: 0,
         J8: 0,
         J9: 0,
-        numero_jogadas: 0,
         player: 1                          
-      });
- 
+      }
+    );
 
-}
+    this.atualizaStates();
+
+  }
   
-
-  insertdata = (posicao,player) => {
-
-    //CONFIGURAÇÕES DO BANCO
-    
-
-    if (!firebase.apps.length) {
-        firebase.initializeApp(config);
-    }
-
-    // BUSCA OS DADOS TODAS A VEZ QUE O BANCO É MODIFICADO
-    firebase.database().ref('game').on('value', (data) => {
-        console.log(data.toJSON());
-    })
-
-    // ESPERAR 5 SEGUNDOS PARA INSERIR O PROXIMO DADO
-    
-        firebase.database().ref('game').update(
-            {
-              ['J'+posicao] : player           
-            }
-        ).then(() => {
-            console.log('INSERTED !');
-        }).catch((error) => {
-            console.log(error);
-        });
-
-
-    // Para Atualizar o banco
-
-    /*
-    firebase.database().ref('game/004').update({
-        name: 'Pheng Sengvuthy'
-    });
-    */
-
-    // para apagar o banco
-    /*
-    firebase.database().ref('game/004').remove();
-    */
-
-}
   
 
   // Esvazia todas as casas do tabuleiro
   iniciarPartida = () => {
 
     console.log(" Inicia P1: "+this.state.pontos_player1 + " P2:"+this.state.pontos_player2);
+    this.atualizaStates();
 
     this.acabaRound();
 
     this.resetgame();
+
+
+  }
+
+  showAlerts = () =>{
+
+      var vi = this.vitoria();
+
+      if(vi==1){
+        Alert.alert("Jogador 1 venceu!");
+      }else if(vi==-1){
+        Alert.alert("Jogador 2 venceu!");
+      }else if(vi == 3){
+        Alert.alert("Deu veia");
+      }
+      
 
 
   }
@@ -200,12 +286,28 @@ export default class Jogo extends React.Component {
     else if (soma == -3) {return -1;}
 
     // Velha
-    return 0;
+    var zero=1;
+
+    for(var i =0; i< 3; i++){
+      for(var x=0; x< 3; x++){
+        if(tabuleiro[i][x]==0){
+          zero=0;
+        }
+      }
+
+    }
+
+    if(zero!=0){
+      return 3;
+    }
+
   }
 
-  acabaRound = () => {
-    if (this.state.rodada >= 4){
 
+  acabaRound = () => {
+
+
+    if (this.state.rodada > 3){
 
       console.log("Rodada: " + this.state.rodada.toString() + "Valor final partida P1: "+ this.state.pontos_player1.toString() + " Valor final partida P2: "+ this.state.pontos_player2.toString());
 
@@ -223,6 +325,16 @@ export default class Jogo extends React.Component {
 
       this.setState({rodada: 1, pontos_player1:0, pontos_player2:0 });
 
+      firebase.database().ref('game').update(
+        {
+          rodada: 0,
+          pontos_player2: 0,
+          pontos_player1: 0,
+        }
+      )
+
+      this.resetgame();
+
     } 
   }
 
@@ -231,14 +343,15 @@ export default class Jogo extends React.Component {
     async jogada (linha, coluna) {
 
     // Verifica se a casa já foi escolhida
+    if(this.state.localPlayer == this.state.player){
     var casa = this.state.tabuleiro[linha][coluna];
     if (casa !== 0) { return; } 
 
     // Conta o número de jogadas
-    var n_jogadas = Number(this.state.numero_jogadas);
-    n_jogadas++;
-    this.setState({numero_jogadas: n_jogadas});
-    console.log("N_jogadas:"+n_jogadas +" P1: "+this.state.pontos_player1 + " P2:"+this.state.pontos_player2);
+    
+
+
+   
     // Pega o player atual
     var player = this.state.player;
 
@@ -277,12 +390,13 @@ export default class Jogo extends React.Component {
       this.insertdata(posicao,player);
     }
 
-    // Troca o player
-    this.setState({player: this.state.player * -1});
-
     // Verifica vitoria
     var vencedor = this.vitoria();
     
+    firebase.database().ref('game').update(
+      {
+        ultimo_ganhador: this.vitoria()
+      })
 
     if (vencedor == 1) {
         let x =this.state.pontos_player1;
@@ -295,12 +409,17 @@ export default class Jogo extends React.Component {
 
     const AsyncAlert = async () => new Promise((resolve) => {
       Alert.alert('Resultado','Player 1 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player1: x, rodada: y}); resolve('YES')}},],
-      { cancelable: false },
-    );
+      { cancelable: false },);
     });
+
     await AsyncAlert();
 
-    this.resetgame();
+    firebase.database().ref('game').update(
+      {
+        pontos_player1: this.state.pontos_player1,
+        rodada: this.state.rodada,
+      })
+
     this.iniciarPartida();  
 
       
@@ -312,7 +431,7 @@ export default class Jogo extends React.Component {
         let y = Number(this.state.rodada);
         y=y+1;
 
-        this.deletedata();
+        
         const AsyncAlert = async () => new Promise((resolve) => {
           Alert.alert('Resultado','Player 2 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player2: x, rodada: y}); resolve('YES')}},],
           { cancelable: false },
@@ -320,10 +439,15 @@ export default class Jogo extends React.Component {
           });
           await AsyncAlert();
       
-          
+          firebase.database().ref('game').update(
+            {
+              pontos_player2: this.state.pontos_player2,
+              rodada: this.state.rodada,
+            })
+
           this.iniciarPartida(); 
 
-    } else if (n_jogadas == 9 && vencedor == 0) {
+    } else if (vencedor == 3) {
       let y = Number(this.state.rodada);
         y=y+1;
         
@@ -334,6 +458,10 @@ export default class Jogo extends React.Component {
       { cancelable: false },
       );
 
+      firebase.database().ref('game').update(
+        {
+          rodada: this.state.rodada
+        })
 
       this.iniciarPartida();
       
@@ -341,6 +469,83 @@ export default class Jogo extends React.Component {
     }
     
     
+  }else{
+
+     
+/*
+      firebase.database().ref('game').on('value', (data) => {
+        this.setState({ultimo_ganhador: data.val().ultimo_ganhador});
+      })
+
+       ///inicio
+       var vencedor = this.state.ultimo_ganhador;
+    
+
+       if (vencedor == 1) {
+           let x =this.state.pontos_player1;
+         
+           
+           let y = Number(this.state.rodada);
+         
+       
+   
+       const AsyncAlert = async () => new Promise((resolve) => {
+         Alert.alert('Resultado','Player 1 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player1: x, rodada: y}); resolve('YES')}},],
+         { cancelable: false },);
+       });
+   
+       await AsyncAlert();
+   
+      
+     
+   
+         
+       } else if (vencedor == -1) {
+   
+         let x = this.state.pontos_player2;
+           
+   
+           let y = Number(this.state.rodada);
+           
+   
+           
+           const AsyncAlert = async () => new Promise((resolve) => {
+             Alert.alert('Resultado','Player 2 venceu esse round!',[{text: 'Continuar', onPress: () => {this.setState({pontos_player2: x, rodada: y}); resolve('YES')}},],
+             { cancelable: false },
+             );
+             });
+             await AsyncAlert();
+         
+        
+   
+       } else if (vencedor == 3) {
+         let y = Number(this.state.rodada);
+           
+   
+   
+         Alert.alert('Resultado','Ih, deu velha!',[{text: 'Continuar'}],
+         { cancelable: false },
+         );
+   
+         
+         
+         
+       }
+ 
+ 
+       //fim
+
+*/
+
+
+       this.atualizaStates();
+      this.acabaRound();
+
+
+     }
+
+
+
   }
   
   render() {
@@ -362,7 +567,7 @@ export default class Jogo extends React.Component {
 
         <View style={styles.nome_player1_input}>
           <Text style={styles.nome_player1_text}>
-            {firebase.auth().currentUser.displayName}
+            {this.state.nome_player1}
           </Text>
         </View>
 
@@ -424,7 +629,7 @@ export default class Jogo extends React.Component {
         >
           <View style={styles.nome_player2_input}>
             <Text style={styles.nome_player2_text}>
-              Jogador 2
+              {this.state.nome_player2}
             </Text>
           </View>
 
