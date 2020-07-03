@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {MaterialCommunityIcons as Icon } from 'react-native-vector-icons';
 import {ImageBackground, TouchableOpacity, StyleSheet, Text, View, SafeAreaView, Alert, StatusBar } from 'react-native';
 import firebase from 'firebase';
+
+import config from '../../config';
 
 export default class Jogo extends React.Component {
 
@@ -9,36 +11,76 @@ export default class Jogo extends React.Component {
 
     super(props);
 
+    if (!firebase.apps.length) {
+      firebase.initializeApp(config);
+    }
+
+    firebase.database().ref('game').update(
+      {
+        J1: 0,
+        J2: 0,
+        J3: 0,
+        J4: 0,
+        J5: 0,
+        J6: 0,
+        J7: 0,
+        J8: 0,
+        J9: 0,
+        jogadores: 0,
+        player: 1,
+        pontos_player1: 0,
+        pontos_player2: 0,
+        rodada: 1,
+        numero_jogadas: 0,
+      });
+
+      var online = [];
+
+      // BUSCA OS DADOS TODAS A VEZ QUE O BANCO É MODIFICADO
+      firebase.database().ref('game').on('value', (data) => {
+        online.push({
+          J1: data.J1,
+          J2: data.J2,
+          J3: data.J3,
+          J4: data.J4,
+          J5: data.J5,
+          J6: data.J6,
+          J7: data.J7,
+          J8: data.J8,
+          J9: data.J9,
+          jogadores: data.jogadores,
+          player: data.player,
+          pontos_player1: data.pontos_player1,
+          pontos_player2: data.pontos_player2,
+          rodada: data.rodada,
+          numero_jogadas: data.numero_jogadas,
+        });
+      })
+      
+      
+
     // Inicia o tabuleiro
     this.state = {
+
+      
       tabuleiro: [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
+        [online.J1, online.J2, online.J3],
+        [online.J4, online.J5, online.J6],
+        [online.J7, online.J8, online.J9],
+        
       ],
 
-      player: 1,
-      pontos_player1: 0,
-      pontos_player2: 0,
-      rodada: 1,
-      numero_jogadas: 0,
+      player: online.player,
+      pontos_player1: online.pontos_player1,
+      pontos_player2: online.pontos_player2,
+      rodada: online.rodada,
+      numero_jogadas: online.numero_jogadas,
     }
   }
 
   resetgame = () => {
 
     //CONFIGURAÇÕES DO BANCO
-    var config = {
-      apiKey: "AIzaSyBVg5RDq_Ftl2Am0Eae8UZietPKWHHoA6E",
-      authDomain: "jogo-da-velha-40552.firebaseapp.com",
-      databaseURL: "https://jogo-da-velha-40552.firebaseio.com",
-      projectId: "jogo-da-velha-40552",
-      storageBucket: "jogo-da-velha-40552.appspot.com",
-      messagingSenderId: "455848204596",
-      appId: "1:455848204596:web:3c15b887a5c8642bdd6d61",
-      measurementId: "G-7YKBRSS9LQ"
-    };
-
     if (!firebase.apps.length) {
         firebase.initializeApp(config);
     }
@@ -49,25 +91,21 @@ export default class Jogo extends React.Component {
     })
 
     // ESPERAR 5 SEGUNDOS PARA INSERIR O PROXIMO DADO
-    setTimeout(() => {
-        firebase.database().ref('game').update(
-            {
-                1: 0,
-                2: 0,
-                3: 0,
-                4: 0,
-                5: 0,
-                6: 0,
-                7: 0,
-                8: 0,
-                9: 0                                
-            }
-        ).then(() => {
-            console.log('INSERTED !');
-        }).catch((error) => {
-            console.log(error);
-        });
-    }, 5000);
+    firebase.database().ref('game').update(
+      {
+        J1: 0,
+        J2: 0,
+        J3: 0,
+        J4: 0,
+        J5: 0,
+        J6: 0,
+        J7: 0,
+        J8: 0,
+        J9: 0,
+        numero_jogadas: 0,
+        player: 1                          
+      });
+ 
 
 }
   
@@ -75,16 +113,7 @@ export default class Jogo extends React.Component {
   insertdata = (posicao,player) => {
 
     //CONFIGURAÇÕES DO BANCO
-    var config = {
-      apiKey: "AIzaSyBVg5RDq_Ftl2Am0Eae8UZietPKWHHoA6E",
-      authDomain: "jogo-da-velha-40552.firebaseapp.com",
-      databaseURL: "https://jogo-da-velha-40552.firebaseio.com",
-      projectId: "jogo-da-velha-40552",
-      storageBucket: "jogo-da-velha-40552.appspot.com",
-      messagingSenderId: "455848204596",
-      appId: "1:455848204596:web:3c15b887a5c8642bdd6d61",
-      measurementId: "G-7YKBRSS9LQ"
-    };
+    
 
     if (!firebase.apps.length) {
         firebase.initializeApp(config);
@@ -96,18 +125,16 @@ export default class Jogo extends React.Component {
     })
 
     // ESPERAR 5 SEGUNDOS PARA INSERIR O PROXIMO DADO
-    setTimeout(() => {
+    
         firebase.database().ref('game').update(
             {
-
-              [posicao]: player           
+              ['J'+posicao] : player           
             }
         ).then(() => {
             console.log('INSERTED !');
         }).catch((error) => {
             console.log(error);
         });
-    }, 5000);
 
 
     // Para Atualizar o banco

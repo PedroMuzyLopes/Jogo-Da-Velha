@@ -1,4 +1,4 @@
-export const firebaseConfig = {
+export var config = {
   apiKey: "AIzaSyBVg5RDq_Ftl2Am0Eae8UZietPKWHHoA6E",
   authDomain: "jogo-da-velha-40552.firebaseapp.com",
   databaseURL: "https://jogo-da-velha-40552.firebaseio.com",

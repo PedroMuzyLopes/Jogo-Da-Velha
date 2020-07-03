@@ -49,7 +49,7 @@ export default function Login() {
                   email: result.user.email,
                   nome: result.additionalUserInfo.profile.given_name,
                   sobrenome: result.additionalUserInfo.profile.family_name,
-                  data_criacao: Date.now()
+                  vitorias: 0
                 })
                 .then(function (snapshot) {
                   //console.log('Snapshot', snapshot)

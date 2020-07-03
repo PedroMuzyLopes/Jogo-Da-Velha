@@ -8,9 +8,9 @@ import Jogo from './src/Paginas/Jogo';
 
 import firebase from 'firebase';
 
-import { firebaseConfig } from './config';
+import { config } from './config';
 
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(config);
 
 
 export default function App() {
